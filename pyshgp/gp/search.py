@@ -307,7 +307,7 @@ class GeneticAlgorithm(SearchAlgorithm):
             ## Normal operation
             for i in range(self.config.population_size):
                 new[i] = self._make_child(self.population)
-            print(f",{self.config.population_size}")
+            print(f",{self.config.population_size},0.0",flush=True)
         else:
             ## Super Explorers Pool operation
             if self.config.use_window_10:
@@ -315,8 +315,9 @@ class GeneticAlgorithm(SearchAlgorithm):
                 min_score=min([o.total_error for o in self.population])
                 self.min_scores[self.generation % 10]=min_score
                 min_score_mean = sum(self.min_scores) / len(self.min_scores)
+                min_score_var = np.var(self.min_scores)
                 if self.generation > 10:
-                    if min_score > min_score_mean - 1: # we are not getting better - more drift
+                    if min_score > min_score_mean - min_score_var: # we are not getting better - more drift
                         self.asp_size -= np.random.choice([0,1])
                         self.asp_size = max(self.asp_size, 25)
                         self.decay_rate *= 0.95
@@ -338,7 +339,7 @@ class GeneticAlgorithm(SearchAlgorithm):
                 else: # propagate with mutation
                     new[i] = self._make_child(Population([self.population[i]]))
                     new[i].age = self.population[i].age + 1
-            print(f",{self.asp_size}")
+            print(f",{self.asp_size},{self.decay_rate}",flush=True)
 
         # create new overall population
         self.population = Population(new)
